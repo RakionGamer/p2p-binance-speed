@@ -14,7 +14,7 @@ const COUNTRIES = [
 
 const MAX_RESULTS = 20;
 const MAX_RETRIES = 10;
-const RETRY_DELAY = 1000; // 1 segundo entre reintentos
+const RETRY_DELAY = 2000; // 2 segundo entre reintentos
 
 // Función auxiliar para esperar
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
