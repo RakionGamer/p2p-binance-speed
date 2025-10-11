@@ -13,18 +13,12 @@ const COUNTRIES = [
 ];
 
 const MAX_RESULTS = 20;
-const MAX_RETRIES = 10;
-const RETRY_DELAY = 2000; // 2 segundo entre reintentos
-
-// Función auxiliar para esperar
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function getBinanceP2PAds(
   fiat,
   payType,
   tradeType = "BUY",
-  targetAmount = 1000,
-  retryCount = 0
+  targetAmount = 1000
 ) {
   const rows = 20;
   let page = 1;
@@ -52,32 +46,8 @@ async function getBinanceP2PAds(
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
-
-      // Si no hay éxito o datos, reintentar
-      if (!data.success || !data.data || data.data.length === 0) {
-        if (retryCount < MAX_RETRIES) {
-          console.log(
-            `Reintentando ${fiat} ${tradeType} (intento ${
-              retryCount + 1
-            }/${MAX_RETRIES})`
-          );
-          await delay(RETRY_DELAY);
-          return getBinanceP2PAds(
-            fiat,
-            payType,
-            tradeType,
-            targetAmount,
-            retryCount + 1
-          );
-        }
-        break;
-      }
-
+      if (!data.success || !data.data || data.data.length === 0) break;
       const filtered = data.data.filter(
         (ad) =>
           ad.advertiser.userType === "merchant" ||
@@ -89,32 +59,12 @@ async function getBinanceP2PAds(
       page++;
       if (page > 100) break;
     } catch (error) {
-      console.error(
-        `Error en página ${page} para ${fiat} ${tradeType}:`,
-        error.message
-      );
-
-      // Reintentar en caso de error
-      if (retryCount < MAX_RETRIES) {
-        console.log(
-          `Reintentando después de error (intento ${
-            retryCount + 1
-          }/${MAX_RETRIES})`
-        );
-        await delay(RETRY_DELAY);
-        return getBinanceP2PAds(
-          fiat,
-          payType,
-          tradeType,
-          targetAmount,
-          retryCount + 1
-        );
-      }
+      console.error(`Error en página ${page}:`, error.message);
       break;
     }
   }
 
-  return { success: allAds.length > 0, data: allAds.slice(0, MAX_RESULTS) };
+  return { success: true, data: allAds.slice(0, MAX_RESULTS) };
 }
 
 function formatAdsData(ads, country) {
@@ -162,18 +112,14 @@ async function processCountry(country) {
   };
 
   try {
-    // Procesar BUY y SELL en paralelo
-    const [buyResponse, sellResponse] = await Promise.all([
-      getBinanceP2PAds(country.fiat, country.payType, "BUY", country.amount),
-      getBinanceP2PAds(country.fiat, country.payType, "SELL", country.amount),
-    ]);
+    const buyResponse = await getBinanceP2PAds(
+      country.fiat,
+      country.payType,
+      "BUY",
+      country.amount
+    );
 
-    // Procesar resultados de BUY
-    if (
-      buyResponse.success &&
-      buyResponse.data &&
-      buyResponse.data.length > 0
-    ) {
+    if (buyResponse.success && buyResponse.data) {
       result.ads.buy = formatAdsData(buyResponse.data, country);
       result.summary.totalBuyAds = result.ads.buy.length;
       if (result.ads.buy.length > 0) {
@@ -181,12 +127,14 @@ async function processCountry(country) {
       }
     }
 
-    // Procesar resultados de SELL
-    if (
-      sellResponse.success &&
-      sellResponse.data &&
-      sellResponse.data.length > 0
-    ) {
+    const sellResponse = await getBinanceP2PAds(
+      country.fiat,
+      country.payType,
+      "SELL",
+      country.amount
+    );
+
+    if (sellResponse.success && sellResponse.data) {
       result.ads.sell = formatAdsData(sellResponse.data, country);
       result.summary.totalSellAds = result.ads.sell.length;
       if (result.ads.sell.length > 0) {
@@ -194,7 +142,6 @@ async function processCountry(country) {
       }
     }
 
-    // Calcular spread solo si ambos precios existen
     if (result.prices.buy && result.prices.sell) {
       result.prices.spread = result.prices.sell - result.prices.buy;
       result.prices.spreadPercentage = (
@@ -205,7 +152,6 @@ async function processCountry(country) {
 
     result.success = true;
   } catch (error) {
-    console.error(`Error procesando ${country.name}:`, error);
     result.success = false;
     result.error = error.message;
   }
@@ -215,29 +161,11 @@ async function processCountry(country) {
 
 export async function GET() {
   try {
-    // Procesar todos los países en paralelo
     const promises = COUNTRIES.map((country) => processCountry(country));
     const data = await Promise.all(promises);
 
-    // Verificar que al menos tengamos algunos datos válidos
-    const validData = data.filter(
-      (d) => d.success && (d.prices.buy || d.prices.sell)
-    );
-
-    if (validData.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "No se pudieron obtener datos de ningún país. Intenta de nuevo.",
-        },
-        { status: 503 }
-      );
-    }
-
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error("Error general en GET:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

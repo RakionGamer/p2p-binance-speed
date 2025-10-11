@@ -7,12 +7,9 @@ import SummaryHeader from "@/components/SummaryHeader";
 
 export default function Home() {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null);
-  const [secondsLeft, setSecondsLeft] = useState(30);
-  const isInitialLoad = useRef(true);
-  const intervalRef = useRef(null);
-  const countdownRef = useRef(null);
+  const isInitialLoad = useRef(true); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,25 +31,14 @@ export default function Home() {
       } finally {
         if (isInitialLoad.current) {
           setLoading(false);
-          isInitialLoad.current = false;
+          isInitialLoad.current = false; 
         }
-        setSecondsLeft(30);
       }
     };
 
-    // primera carga
     fetchData();
-
-    intervalRef.current = setInterval(fetchData, 30000);
-
-    countdownRef.current = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 30));
-    }, 1000);
-
-    return () => {
-      clearInterval(intervalRef.current);
-      clearInterval(countdownRef.current);
-    };
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <LoadingSpinner />;
@@ -87,21 +73,13 @@ export default function Home() {
                 Precios en tiempo real de USDT en diferentes países
               </p>
             </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>
-                Actualización automática cada 30 s — Próxima en{" "}
-                <span className="font-semibold text-gray-800">
-                  {secondsLeft}s
-                </span>
-              </span>
+              <span>Actualización automática</span>
             </div>
           </div>
         </header>
-
         <SummaryHeader data={data} />
-
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {data?.map((countryData, idx) => (
             <CountrySection key={idx} data={countryData} />
