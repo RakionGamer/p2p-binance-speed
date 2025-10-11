@@ -13,7 +13,7 @@ const COUNTRIES = [
 ];
 
 const MAX_RESULTS = 20;
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 10;
 const RETRY_DELAY = 1000; // 1 segundo entre reintentos
 
 // Función auxiliar para esperar
