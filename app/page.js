@@ -37,7 +37,7 @@ export default function Home() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -63,7 +63,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header principal */}
         <header className="mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -80,10 +79,7 @@ export default function Home() {
             </div>
           </div>
         </header>
-
-        {/* Resumen general */}
         <SummaryHeader data={data} />
-        {/* Tarjetas de países */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {data?.map((countryData, idx) => (
             <CountrySection key={idx} data={countryData} />
