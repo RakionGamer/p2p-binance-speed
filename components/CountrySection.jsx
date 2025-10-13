@@ -45,10 +45,7 @@ export default function CountrySection({ data }) {
           type="spread"
         />
       </div>
-
-      {/* Grid de anuncios con scroll */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Sección de Compra */}
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -72,7 +69,6 @@ export default function CountrySection({ data }) {
           </div>
         </div>
 
-        {/* Sección de Venta */}
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <TrendingDown className="w-4 h-4 text-rose-500" />

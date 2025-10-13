@@ -10,9 +10,94 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null); 
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const isInitialLoad = useRef(true);
+  const isMountedRef = useRef(true);
+  const MAX_ATTEMPTS = 30; 
+  const RETRY_DELAY_MS = 1000; 
 
+  useEffect(() => {
+    isMountedRef.current = true;
+    fetchData();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+  const allCountriesHavePrices = (arr) => {
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    return arr.every(
+      (c) =>
+        c &&
+        c.prices &&
+        c.prices.buy !== null &&
+        c.prices.buy !== undefined &&
+        c.prices.sell !== null &&
+        c.prices.sell !== undefined
+    );
+  };
+
+  const fetchData = async () => {
+    if (updating) return;
+
+    try {
+      if (isInitialLoad.current) setLoading(true);
+      else setUpdating(true);
+
+      setError(null);
+      setRetryCount(0);
+
+      let attempts = 0;
+      let finalData = null;
+
+      while (isMountedRef.current) {
+        attempts++;
+        setRetryCount(attempts);
+
+        try {
+          const response = await fetch("/api/binance");
+          const result = await response.json();
+
+          if (!result.success) {
+            console.warn(
+              `Intento ${attempts}: respuesta sin éxito`,
+              result.error
+            );
+          } else if (!result.data || result.data.length === 0) {
+            console.warn(`Intento ${attempts}: datos vacíos`);
+          } else if (allCountriesHavePrices(result.data)) {
+            finalData = result.data;
+            setData(finalData);
+            setError(null);
+            setLastUpdated(new Date());
+            break;
+          } else {
+            console.warn(
+              `Intento ${attempts}: datos incompletos — reintentando`
+            );
+          }
+        } catch (err) {
+          console.error(`Intento ${attempts}: error fetch`, err);
+        }
+
+        if (attempts >= MAX_ATTEMPTS) {
+          const msg = `No se obtuvieron datos completos tras ${attempts} intentos.`;
+          console.warn(msg);
+          setError(msg);
+          break;
+        }
+        await sleep(RETRY_DELAY_MS);
+      }
+    } finally {
+      if (isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+      }
+      setUpdating(false);
+    }
+  };
   const formatTime = (date) => {
     if (!date) return "Nunca";
     try {
@@ -27,57 +112,7 @@ export default function Home() {
       return new Date(date).toLocaleTimeString();
     }
   };
-
-  const fetchData = async () => {
-    try {
-      if (isInitialLoad.current) setLoading(true);
-      else setUpdating(true);
-
-      const response = await fetch("/api/binance");
-      const result = await response.json();
-
-      if (result.success) {
-        setData(result.data);
-        setError(null);
-        setLastUpdated(new Date());
-      } else {
-        setError(result.error || "Error al obtener datos");
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching data:", err);
-    } finally {
-      if (isInitialLoad.current) {
-        setLoading(false);
-        isInitialLoad.current = false;
-      }
-      setUpdating(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   if (loading) return <LoadingSpinner />;
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -91,7 +126,6 @@ export default function Home() {
                 Precios en tiempo real de USDT en diferentes países
               </p>
             </div>
-
             <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
               <button
                 onClick={fetchData}
@@ -145,10 +179,8 @@ export default function Home() {
                     <path d="M20.49 15a9 9 0 01-14.13 3.36L1 14" />
                   </svg>
                 )}
-
                 <span>{updating ? "Actualizando..." : "Actualizar"}</span>
               </button>
-
               <div className="text-sm text-gray-600">
                 <div>
                   Última actualización:{" "}
@@ -162,10 +194,28 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <div className="mt-3">
+            {updating && retryCount > 0 && (
+              <div className="text-sm text-yellow-700">
+                Actualizando tasas, espere un momento..
+              </div>
+            )}
+            {error && (
+              <div className="text-sm text-red-600 mt-1">
+                {error}
+                <button
+                  onClick={() => {
+                    fetchData();
+                  }}
+                  className="ml-3 text-xs underline"
+                >
+                  Reintentar ahora
+                </button>
+              </div>
+            )}
+          </div>
         </header>
-
         <SummaryHeader data={data} />
-
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {data?.map((countryData, idx) => (
             <CountrySection key={idx} data={countryData} />

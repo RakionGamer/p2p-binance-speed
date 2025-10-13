@@ -3,8 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import { TrendingUp, TrendingDown, Percent } from "lucide-react";
-
-// 🏦 Mapeo de bancos → logo con tamaños personalizados
 const BANK_LOGOS = {
   BancoGuayaquil: {
     src: "/banco-guayaquil.svg",
@@ -87,24 +85,18 @@ export default function SummaryHeader({ data }) {
 
           <div className="space-y-3">
             {data.map((country, idx) => {
-              // 🧠 Lógica de detección del logo
               let paymentMethod = country.paymentMethod;
-
-              // Si el país es Chile y no tiene método, usar Banco Santander
               if (!paymentMethod && country.country === "Chile") {
                 paymentMethod = "BancoSantander";
               }
 
               const bankInfo = BANK_LOGOS[paymentMethod] || null;
-
               return (
                 <div
                   key={idx}
                   className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200"
                 >
-                  {/* 🏦 Logo del banco - AHORA A LA IZQUIERDA */}
 
-                  {/* 🇨🇱 País */}
                   <div className="font-semibold text-gray-900 text-center sm:text-left">
                     <span className="sm:hidden text-xs text-gray-500 block mb-1">
                       País
