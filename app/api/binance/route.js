@@ -16,7 +16,7 @@ const COUNTRIES = [
   { name: "Panama", fiat: "PAB", amount: null, payType: null },*/
 ];
 
-const MAX_RESULTS = 100;
+const MAX_RESULTS = 20;
 
 async function getBinanceP2PAds(
   fiat,
