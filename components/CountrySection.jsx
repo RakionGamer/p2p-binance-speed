@@ -4,6 +4,28 @@ import PriceCard from "./PriceCard";
 import MerchantCard from "./MerchantCard";
 
 export default function CountrySection({ data }) {
+  const MAX_ADS = 20;
+  const PRICE_INDEX = 4;
+
+  const buyAds = data.ads.buy.slice(0, MAX_ADS);
+  const sellAds = data.ads.sell.slice(0, MAX_ADS);
+
+  const getBestPrice = (ads) => {
+    if (!ads || ads.length === 0) return null;
+    if (ads.length > PRICE_INDEX) {
+      return ads[PRICE_INDEX].ad.price;
+    }
+    return ads[ads.length - 1].ad.price;
+  };
+
+  const bestBuyPrice = getBestPrice(data.ads.buy);
+  const bestSellPrice = getBestPrice(data.ads.sell);
+
+  const spread =
+    bestBuyPrice && bestSellPrice ? bestSellPrice - bestBuyPrice : null;
+  const spreadPercentage =
+    spread && bestBuyPrice ? ((spread / bestBuyPrice) * 100).toFixed(2) : null;
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
       {/* Header del país */}
@@ -17,29 +39,24 @@ export default function CountrySection({ data }) {
         </div>
       </div>
 
-      {/* Cards de mejor precio */}
       <div className="flex gap-3 mb-6">
         <PriceCard
-          title="Mejor Compra"
-          price={data.prices.buy}
+          title="Mejor Compra (5to)"
+          price={bestBuyPrice}
           fiat={data.fiat}
           icon={TrendingUp}
           type="buy"
         />
         <PriceCard
-          title="Mejor Venta"
-          price={data.prices.sell}
+          title="Mejor Venta (5to)"
+          price={bestSellPrice}
           fiat={data.fiat}
           icon={TrendingDown}
           type="sell"
         />
         <PriceCard
           title="Spread"
-          price={
-            data.prices.spreadPercentage
-              ? parseFloat(data.prices.spreadPercentage)
-              : null
-          }
+          price={spreadPercentage ? parseFloat(spreadPercentage) : null}
           fiat="%"
           icon={Percent}
           type="spread"
@@ -49,11 +66,11 @@ export default function CountrySection({ data }) {
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-emerald-500" />
-            Compra ({data.summary.totalBuyAds})
+            Compra ({buyAds.length} de {data.summary.totalBuyAds})
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {data.ads.buy.length > 0 ? (
-              data.ads.buy.map((item, idx) => (
+            {buyAds.length > 0 ? (
+              buyAds.map((item, idx) => (
                 <MerchantCard
                   key={idx}
                   merchant={item.merchant}
@@ -72,11 +89,11 @@ export default function CountrySection({ data }) {
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <TrendingDown className="w-4 h-4 text-rose-500" />
-            Venta ({data.summary.totalSellAds})
+            Venta ({sellAds.length} de {data.summary.totalSellAds})
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {data.ads.sell.length > 0 ? (
-              data.ads.sell.map((item, idx) => (
+            {sellAds.length > 0 ? (
+              sellAds.map((item, idx) => (
                 <MerchantCard
                   key={idx}
                   merchant={item.merchant}

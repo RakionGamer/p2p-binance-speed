@@ -16,7 +16,7 @@ const COUNTRIES = [
   { name: "Panama", fiat: "PAB", amount: null, payType: null },*/
 ];
 
-const MAX_RESULTS = 30;
+const MAX_RESULTS = 100;
 
 async function getBinanceP2PAds(
   fiat,
@@ -57,6 +57,12 @@ async function getBinanceP2PAds(
           ad.advertiser.userType === "merchant" ||
           ad.advertiser.userIdentity === "verified"
       );
+
+      const filterNickname = data.data.filter((ad) => {
+        ad.advertiser.userNickName === ''
+      })
+
+
       allAds = allAds.concat(filtered);
 
       if (allAds.length >= MAX_RESULTS) break;
