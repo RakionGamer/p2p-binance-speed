@@ -3,16 +3,20 @@ import { NextResponse } from "next/server";
 const API_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
 
 const COUNTRIES = [
+  { name: "Chile", fiat: "CLP", amount: null, payType: null },
   { name: "Venezuela", fiat: "VES", amount: 50000, payType: "SpecificBank" },
   { name: "Perú", fiat: "PEN", amount: 450, payType: "CreditBankofPeru" },
   { name: "México", fiat: "MXN", amount: 2500, payType: "OXXO" },
   { name: "Argentina", fiat: "ARS", amount: 200000, payType: "MercadoPagoNew" },
   { name: "Colombia", fiat: "COP", amount: 450000, payType: "BancolombiaSA" },
   { name: "Ecuador", fiat: "USD", amount: 200, payType: "BancoGuayaquil" },
-  { name: "Chile", fiat: "CLP", amount: null, payType: null },
+
+  /*
+  { name: "Rep. Dominicana", fiat: "DOP", amount: null, payType: null },
+  { name: "Panama", fiat: "PAB", amount: null, payType: null },*/
 ];
 
-const MAX_RESULTS = 20;
+const MAX_RESULTS = 30;
 
 async function getBinanceP2PAds(
   fiat,

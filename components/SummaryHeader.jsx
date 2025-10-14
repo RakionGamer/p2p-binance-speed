@@ -46,7 +46,6 @@ export default function SummaryHeader({ data }) {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
-      {/* 🔹 Encabezado con logo Binance P2P */}
       <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Image
           src="/speed-logo.png"
@@ -68,7 +67,7 @@ export default function SummaryHeader({ data }) {
 
      
             <div className="flex items-center gap-1">
-              <TrendingDown className="w-5 h-5 text-green-500" />
+              <TrendingUp className="w-5 h-5 text-green-500" />
               Compra
             </div>
 
@@ -104,7 +103,6 @@ export default function SummaryHeader({ data }) {
                     {country.country}
                   </div>
 
-                  {/* 💰 Compra */}
                   <div className="text-emerald-600 font-semibold text-lg text-center sm:text-left">
                     <span className="sm:hidden text-xs text-gray-500 block mb-1">
                       Compra
@@ -114,7 +112,6 @@ export default function SummaryHeader({ data }) {
                       : "N/A"}
                   </div>
 
-                  {/* 💸 Venta */}
                   <div className="text-rose-600 font-semibold text-lg text-center sm:text-left">
                     <span className="sm:hidden text-xs text-gray-500 block mb-1">
                       Venta
@@ -124,7 +121,6 @@ export default function SummaryHeader({ data }) {
                       : "N/A"}
                   </div>
 
-                  {/* 📊 Spread */}
                   <div className="font-semibold text-gray-900 text-lg text-center sm:text-left">
                     <span className="sm:hidden text-xs text-gray-500 block mb-1">
                       Spread
