@@ -40,6 +40,11 @@ const BANK_LOGOS = {
     width: 45,
     height: 45,
   },
+  PIX: {
+    src: "/pix.svg",
+    width: 60,
+    height: 60,
+  },
 };
 
 const PRICE_INDEX = 4; 
@@ -60,8 +65,6 @@ export default function SummaryHeader({ data }) {
     const sellPrice = get5thPrice(country.ads.sell);
 
     let spread = null;
-    let spreadPercentage = null;
-
     if (buyPrice && sellPrice) {
       spread = sellPrice - buyPrice;
     }
@@ -115,9 +118,14 @@ export default function SummaryHeader({ data }) {
           <div className="space-y-3">
             {countriesWithPrices.map((country, idx) => {
               let paymentMethod = country.paymentMethod;
-              if (!paymentMethod && country.country === "Chile") {
-                paymentMethod = "BancoSantander";
+              if (!paymentMethod) {
+                const defaultMethods = {
+                  Chile: "BancoSantander",
+                  Brasil: "PIX",
+                };
+                paymentMethod = defaultMethods[country.country] || paymentMethod;
               }
+
 
               const bankInfo = BANK_LOGOS[paymentMethod] || null;
               return (

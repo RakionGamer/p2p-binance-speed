@@ -4,6 +4,7 @@ const API_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
 
 const COUNTRIES = [
   { name: "Chile", fiat: "CLP", amount: null, payType: null },
+  { name: "Brasil", fiat: "BRL", amount: null, payType: null },
   { name: "Venezuela", fiat: "VES", amount: 50000, payType: "SpecificBank" },
   { name: "Perú", fiat: "PEN", amount: 450, payType: "CreditBankofPeru" },
   { name: "México", fiat: "MXN", amount: 2500, payType: "OXXO" },
@@ -49,11 +50,14 @@ async function getBinanceP2PAds(
 
       const data = await response.json();
       if (!data.success || !data.data || data.data.length === 0) break;
-      const filtered = data.data.filter(
-        (ad) =>
+      const filtered = data.data.filter((ad) => {
+        if (fiat === "BRL") return true;
+        return (
           ad.advertiser.userType === "merchant" ||
           ad.advertiser.userIdentity === "verified"
-      );
+        );
+      });
+
 
       const filterNickname = data.data.filter((ad) => {
         ad.advertiser.userNickName === ''
@@ -149,7 +153,14 @@ async function processCountry(country) {
       }
     }
 
-    if (result.prices.buy && result.prices.sell) {
+    if (country.fiat === "BRL" && !result.prices.buy) {
+      result.prices.buy = "N/A";
+    }
+
+    if (
+      typeof result.prices.buy === "number" &&
+      typeof result.prices.sell === "number"
+    ) {
       result.prices.spread = result.prices.sell - result.prices.buy;
       result.prices.spreadPercentage = (
         (result.prices.spread / result.prices.buy) *
@@ -165,6 +176,7 @@ async function processCountry(country) {
 
   return result;
 }
+
 
 export async function GET() {
   try {

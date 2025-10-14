@@ -15,7 +15,7 @@ export default function Home() {
   const isInitialLoad = useRef(true);
   const isMountedRef = useRef(true);
   const MAX_ATTEMPTS = 30; 
-  const RETRY_DELAY_MS = 3000; 
+  const RETRY_DELAY_MS = 1000; 
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -28,15 +28,19 @@ export default function Home() {
   const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
   const allCountriesHavePrices = (arr) => {
     if (!Array.isArray(arr) || arr.length === 0) return false;
-    return arr.every(
-      (c) =>
-        c &&
-        c.prices &&
+
+    return arr.every((c) => {
+      if (!c || !c.prices) return false;
+      if (c.fiat === "BRL") {
+        return c.prices.sell !== null && c.prices.sell !== undefined;
+      }
+      return (
         c.prices.buy !== null &&
         c.prices.buy !== undefined &&
         c.prices.sell !== null &&
         c.prices.sell !== undefined
-    );
+      );
+    });
   };
 
   const fetchData = async () => {
