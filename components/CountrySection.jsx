@@ -53,7 +53,7 @@ export default function CountrySection({ data }) {
           type="sell"
         />
         <PriceCard
-          title="Spread"
+          title="Diferencia"
           price={spread ? parseFloat(spread) : null}
           fiat="%"
           icon={Percent}
