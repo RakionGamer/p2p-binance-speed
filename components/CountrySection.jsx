@@ -21,10 +21,8 @@ export default function CountrySection({ data }) {
   const bestBuyPrice = getBestPrice(data.ads.buy);
   const bestSellPrice = getBestPrice(data.ads.sell);
 
-  const spread =
-    bestBuyPrice && bestSellPrice ? bestSellPrice - bestBuyPrice : null;
-  const spreadPercentage =
-    spread && bestBuyPrice ? ((spread / bestBuyPrice) * 100).toFixed(2) : null;
+  const spread = bestBuyPrice && bestSellPrice ? bestSellPrice - bestBuyPrice : null;
+  
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
@@ -56,7 +54,7 @@ export default function CountrySection({ data }) {
         />
         <PriceCard
           title="Spread"
-          price={spreadPercentage ? parseFloat(spreadPercentage) : null}
+          price={spread ? parseFloat(spread) : null}
           fiat="%"
           icon={Percent}
           type="spread"

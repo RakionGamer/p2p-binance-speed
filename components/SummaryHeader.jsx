@@ -64,7 +64,6 @@ export default function SummaryHeader({ data }) {
 
     if (buyPrice && sellPrice) {
       spread = sellPrice - buyPrice;
-      spreadPercentage = ((spread / buyPrice) * 100).toFixed(2);
     }
 
     return {
@@ -73,7 +72,6 @@ export default function SummaryHeader({ data }) {
         buy: buyPrice,
         sell: sellPrice,
         spread: spread,
-        spreadPercentage: spreadPercentage,
       },
     };
   });
@@ -109,7 +107,7 @@ export default function SummaryHeader({ data }) {
             </div>
             <div className="flex items-center gap-1">
               <Percent className="w-5 h-5 text-gray-500" />
-              Spread
+              Diferencia
             </div>
             <div className="flex items-center gap-1">Método de Pago</div>
           </div>
@@ -156,8 +154,8 @@ export default function SummaryHeader({ data }) {
                     <span className="sm:hidden text-xs text-gray-500 block mb-1">
                       Spread
                     </span>
-                    {country.calculatedPrices.spreadPercentage
-                      ? `${country.calculatedPrices.spreadPercentage}%`
+                    {country.calculatedPrices.spread
+                      ? `${country.calculatedPrices.spread.toFixed(2)}`
                       : "N/A"}
                   </div>
                   <div className="flex items-center justify-center sm:justify-start">
