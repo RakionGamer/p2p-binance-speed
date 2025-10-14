@@ -10,10 +10,7 @@ const COUNTRIES = [
   { name: "Argentina", fiat: "ARS", amount: 200000, payType: "MercadoPagoNew" },
   { name: "Colombia", fiat: "COP", amount: 450000, payType: "BancolombiaSA" },
   { name: "Ecuador", fiat: "USD", amount: 200, payType: "BancoGuayaquil" },
-
-  /*
   { name: "Rep. Dominicana", fiat: "DOP", amount: null, payType: null },
-  { name: "Panama", fiat: "PAB", amount: null, payType: null },*/
 ];
 
 const MAX_RESULTS = 20;
