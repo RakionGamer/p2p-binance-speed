@@ -15,7 +15,7 @@ export default function Home() {
   const isInitialLoad = useRef(true);
   const isMountedRef = useRef(true);
   const cachedDataRef = useRef({});
-  const MAX_ATTEMPTS = 8;
+  const MAX_ATTEMPTS = 30;
   const RETRY_DELAY_MS = 3000;
 
   useEffect(() => {
