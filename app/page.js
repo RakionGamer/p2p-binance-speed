@@ -14,8 +14,9 @@ export default function Home() {
   const [retryCount, setRetryCount] = useState(0);
   const isInitialLoad = useRef(true);
   const isMountedRef = useRef(true);
-  const MAX_ATTEMPTS = 30; 
-  const RETRY_DELAY_MS = 5000; 
+  const cachedDataRef = useRef({});
+  const MAX_ATTEMPTS = 8;
+  const RETRY_DELAY_MS = 3000;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -26,21 +27,42 @@ export default function Home() {
   }, []);
 
   const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+  const isCountryDataValid = (countryData) => {
+    if (!countryData || !countryData.prices) return false;
+    if (countryData.fiat === "BRL") {
+      return (
+        countryData.prices.sell !== null &&
+        countryData.prices.sell !== undefined
+      );
+    }
+    return (
+      countryData.prices.buy !== null &&
+      countryData.prices.buy !== undefined &&
+      countryData.prices.sell !== null &&
+      countryData.prices.sell !== undefined
+    );
+  };
+
+  const mergeWithCache = (newData) => {
+    if (!Array.isArray(newData)) return [];
+
+    return newData.map((countryData) => {
+      const countryKey = countryData.fiat;
+      const isValid = isCountryDataValid(countryData);
+
+      if (isValid) {
+        cachedDataRef.current[countryKey] = countryData;
+        return countryData;
+      } else {
+        return cachedDataRef.current[countryKey] || countryData;
+      }
+    });
+  };
+
   const allCountriesHavePrices = (arr) => {
     if (!Array.isArray(arr) || arr.length === 0) return false;
-
-    return arr.every((c) => {
-      if (!c || !c.prices) return false;
-      if (c.fiat === "BRL") {
-        return c.prices.sell !== null && c.prices.sell !== undefined;
-      }
-      return (
-        c.prices.buy !== null &&
-        c.prices.buy !== undefined &&
-        c.prices.sell !== null &&
-        c.prices.sell !== undefined
-      );
-    });
+    return arr.every((c) => isCountryDataValid(c));
   };
 
   const fetchData = async () => {
@@ -54,9 +76,9 @@ export default function Home() {
       setRetryCount(0);
 
       let attempts = 0;
-      let finalData = null;
+      let hasShownPartialData = false;
 
-      while (isMountedRef.current) {
+      while (isMountedRef.current && attempts < MAX_ATTEMPTS) {
         attempts++;
         setRetryCount(attempts);
 
@@ -71,27 +93,43 @@ export default function Home() {
             );
           } else if (!result.data || result.data.length === 0) {
             console.warn(`Intento ${attempts}: datos vacíos`);
-          } else if (allCountriesHavePrices(result.data)) {
-            finalData = result.data;
-            setData(finalData);
-            setError(null);
-            setLastUpdated(new Date());
-            break;
           } else {
-            console.warn(
-              `Intento ${attempts}: datos incompletos — reintentando`
-            );
+            const mergedData = mergeWithCache(result.data);
+
+            setData(mergedData);
+            setLastUpdated(new Date());
+            hasShownPartialData = true;
+
+            if (allCountriesHavePrices(mergedData)) {
+              console.log(
+                `✅ Datos completos obtenidos en intento ${attempts}`
+              );
+              setError(null);
+              break;
+            } else {
+              console.log(
+                `⏳ Intento ${attempts}: mostrando datos parciales, continuando...`
+              );
+            }
           }
         } catch (err) {
           console.error(`Intento ${attempts}: error fetch`, err);
         }
 
         if (attempts >= MAX_ATTEMPTS) {
-          const msg = `No se obtuvieron datos completos tras ${attempts} intentos.`;
-          console.warn(msg);
-          setError(msg);
+          if (hasShownPartialData) {
+            console.log(
+              `ℹ️ Mostrando mejor resultado después de ${attempts} intentos`
+            );
+            setError(null);
+          } else {
+            const msg = `No se obtuvieron datos completos tras ${attempts} intentos.`;
+            console.warn(msg);
+            setError(msg);
+          }
           break;
         }
+
         await sleep(RETRY_DELAY_MS);
       }
     } finally {
@@ -102,6 +140,7 @@ export default function Home() {
       setUpdating(false);
     }
   };
+
   const formatTime = (date) => {
     if (!date) return "Nunca";
     try {
@@ -116,7 +155,9 @@ export default function Home() {
       return new Date(date).toLocaleTimeString();
     }
   };
+
   if (loading) return <LoadingSpinner />;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -200,12 +241,12 @@ export default function Home() {
           </div>
           <div className="mt-3">
             {updating && retryCount > 0 && (
-              <div className="text-sm text-yellow-700">
-                Actualizando tasas, espere un momento..
+              <div className="text-sm text-black-700 px-3 py-2 rounded-md">
+                Actualizando tasas...
               </div>
             )}
             {error && (
-              <div className="text-sm text-red-600 mt-1">
+              <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md mt-1">
                 {error}
                 <button
                   onClick={() => {
