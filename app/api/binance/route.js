@@ -14,7 +14,6 @@ const COUNTRIES = [
   { name: "Rep. Dominicana", fiat: "DOP", amount: null, payType: null },
 ];
 
-const MAX_RESULTS = 20;
 
 async function getBinanceP2PAds(
   fiat,
@@ -26,9 +25,7 @@ async function getBinanceP2PAds(
   let page = 1;
   let allAds = [];
 
-  // Cambia el while para que solo se detenga cuando no haya más datos
   while (true) {
-    // <-- Cambiar esta línea
     const payload = {
       asset: "USDT",
       fiat: fiat,
@@ -62,20 +59,15 @@ async function getBinanceP2PAds(
       });
 
       allAds = allAds.concat(filtered);
-
-      // Elimina esta condición
-      // if (allAds.length >= MAX_RESULTS) break;
-
       page++;
-      if (page > 100) break; // Mantén este límite de seguridad para evitar loops infinitos
+      if (page > 100) break; 
     } catch (error) {
       console.error(`Error en página ${page}:`, error.message);
       break;
     }
   }
 
-  // Cambia el return para devolver todos los ads sin límite
-  return { success: true, data: allAds }; // <-- Eliminar el .slice(0, MAX_RESULTS)
+  return { success: true, data: allAds };
 }
 
 function formatAdsData(ads, country) {
