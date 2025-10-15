@@ -26,7 +26,9 @@ async function getBinanceP2PAds(
   let page = 1;
   let allAds = [];
 
-  while (allAds.length < MAX_RESULTS) {
+  // Cambia el while para que solo se detenga cuando no haya más datos
+  while (true) {
+    // <-- Cambiar esta línea
     const payload = {
       asset: "USDT",
       fiat: fiat,
@@ -50,6 +52,7 @@ async function getBinanceP2PAds(
 
       const data = await response.json();
       if (!data.success || !data.data || data.data.length === 0) break;
+
       const filtered = data.data.filter((ad) => {
         if (fiat === "BRL") return true;
         return (
@@ -58,24 +61,21 @@ async function getBinanceP2PAds(
         );
       });
 
-
-      const filterNickname = data.data.filter((ad) => {
-        ad.advertiser.userNickName === ''
-      })
-
-
       allAds = allAds.concat(filtered);
 
-      if (allAds.length >= MAX_RESULTS) break;
+      // Elimina esta condición
+      // if (allAds.length >= MAX_RESULTS) break;
+
       page++;
-      if (page > 100) break;
+      if (page > 100) break; // Mantén este límite de seguridad para evitar loops infinitos
     } catch (error) {
       console.error(`Error en página ${page}:`, error.message);
       break;
     }
   }
 
-  return { success: true, data: allAds.slice(0, MAX_RESULTS) };
+  // Cambia el return para devolver todos los ads sin límite
+  return { success: true, data: allAds }; // <-- Eliminar el .slice(0, MAX_RESULTS)
 }
 
 function formatAdsData(ads, country) {

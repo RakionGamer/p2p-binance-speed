@@ -18,11 +18,12 @@ export default function CountrySection({ data }) {
     return ads[ads.length - 1].ad.price;
   };
 
+
   const bestBuyPrice = getBestPrice(data.ads.buy);
   const bestSellPrice = getBestPrice(data.ads.sell);
 
   const spread = bestBuyPrice && bestSellPrice ? bestSellPrice - bestBuyPrice : null;
-  
+
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
