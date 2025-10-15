@@ -15,7 +15,7 @@ export default function Home() {
   const isInitialLoad = useRef(true);
   const isMountedRef = useRef(true);
   const MAX_ATTEMPTS = 30; 
-  const RETRY_DELAY_MS = 1000; 
+  const RETRY_DELAY_MS = 5000; 
 
   useEffect(() => {
     isMountedRef.current = true;

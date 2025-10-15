@@ -47,7 +47,31 @@ async function getBinanceP2PAds(
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        console.error(
+          `HTTP Error ${response.status} para ${fiat} en página ${page}`
+        );
+        break;
+      }
+
+      const text = await response.text();
+      if (!text || text.trim() === "") {
+        console.error(`Respuesta vacía para ${fiat} en página ${page}`);
+        break;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error(
+          `Error parseando JSON para ${fiat} en página ${page}:`,
+          parseError.message
+        );
+        console.error("Respuesta recibida:", text.substring(0, 200));
+        break;
+      }
+
       if (!data.success || !data.data || data.data.length === 0) break;
 
       const filtered = data.data.filter((ad) => {
@@ -59,10 +83,13 @@ async function getBinanceP2PAds(
       });
 
       allAds = allAds.concat(filtered);
+
       page++;
-      if (page > 100) break; 
+      if (page > 100) break;
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
-      console.error(`Error en página ${page}:`, error.message);
+      console.error(`Error en página ${page} para ${fiat}:`, error.message);
       break;
     }
   }
